@@ -1,0 +1,9 @@
+.box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid white;
+    padding: 10px;
+    margin: 10px;
+}
