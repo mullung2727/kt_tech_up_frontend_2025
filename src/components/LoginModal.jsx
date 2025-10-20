@@ -33,10 +33,7 @@ export default function LoginModal() {
     await logout();
     setUser(null);
   }
-
-  useEffect( () => {
-    onAuthStateChange((user)=>setUser(user))
-  }, [])
+  // TODO 로그인상태 유지하기
 
   if (user) {
     return (

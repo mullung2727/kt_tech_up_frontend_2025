@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getPokemon } from "../api/pokeAPI";
 import { Box, Card, Heading, HStack, Image, Text } from "@chakra-ui/react";
 import TypeBedge from "./TypeBedge";
+import { Link } from "react-router-dom";
 
 export default function PokemonCard({id}) {
   const [pokemon, setPokemon] = useState(null);
@@ -15,7 +16,18 @@ export default function PokemonCard({id}) {
   }, [])
 
   return (
-      <Card.Root maxWidth="300px" border="1px solid black" borderRadius="md">
+      <Card.Root 
+        maxWidth="300px" 
+        border="1px solid black" 
+        borderRadius="md"
+        as={Link}
+        to={`/pokemon/${id}`}
+        _hover={{
+          opacity: 0.8,              // 호버 시 투명도 80%로 흐리게
+          transform: "scale(1.02)",  // 호버 시 2% 크기 확대
+          transition: "all 0.2s"     // 모든 변화에 0.2초 부드러운 전환
+        }}
+      >
           <Card.Header>
             <Heading as='h2'>
               {pokemon?.name}

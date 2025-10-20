@@ -26,7 +26,7 @@ export default function PokemonDetails() {
     <Container w="50%">
       <Card.Root>
         <Card.Body>
-          <SimpleGrid columns={{ base: 1, md:2}} gap={4}>
+          <SimpleGrid columns={1} gap={4}>
             <Box textAlign="center">
               <Image
                 src={pokemon?.image} 
@@ -79,7 +79,7 @@ export default function PokemonDetails() {
           <Button 
             onClick={()=> navigate("/")} 
             variant={'outline'}
-          > <Icon as={FaArrowLeft} />뒤로가기 </Button>
+          > <Icon as={FaArrowLeft} />홈으로 </Button>
         </Card.Footer>
       </Card.Root>
     </Container>
