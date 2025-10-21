@@ -5,11 +5,10 @@ import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 
 export default function GoogleLoginButton() {
-
   const handleGoogleLogin = async () => {
     try {
-      // TODO 구글 로그인 처리
-      console.log('구글 로그인 처리');
+      const user = await googleSignIn()
+      console.log('구글 로그인 처리', user);
     } catch (error) {
       console.log(error);
     }

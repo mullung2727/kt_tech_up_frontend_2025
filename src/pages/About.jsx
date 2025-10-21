@@ -1,6 +1,11 @@
 import { Box, Heading, Text } from "@chakra-ui/react";
+import { useContext, useEffect } from "react";
+import { onAuthStateChange } from "../services/auth";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function About() {
+  const {user, setUser} = useContext(AuthContext)
+  
 
   return (
     <Box p={6}>

@@ -5,14 +5,19 @@ import { logout } from "../services/auth";
 
 export default function MenuWithAvatar() {
 
-
-  // TODO : handleLogout 함수 만들기
-
+  const { user } = useContext(AuthContext)
+  const handleLogout = async () => {
+    await logout();
+    console.log("로그아웃")
+  }
 
   return (
     <Menu.Root>
       <Menu.Trigger>
-        {/* TODO Avatar 만들기 */}
+          <Avatar.Root size="sm">
+            <Avatar.Fallback name={user.displayName || user.email} />
+            <Avatar.Image src={user.photoURL} />
+          </Avatar.Root>
       </Menu.Trigger>
       {/** 최상단 위치하게 하기 위해 Portal 사용 */}
       <Portal>

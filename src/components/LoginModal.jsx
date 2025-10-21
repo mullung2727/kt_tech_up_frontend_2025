@@ -1,10 +1,12 @@
 // src/components/LoginModal.jsx
-import { Button, Dialog, Field, Fieldset, Icon, Input, Portal, useDisclosure } from "@chakra-ui/react";
+import { Button, Dialog, Field, Fieldset, HStack, Icon, Input, Portal, Separator, Text, useDisclosure } from "@chakra-ui/react";
 import { PasswordInput } from "./ui/password-input";
 import { FaX } from "react-icons/fa6";
 import { useContext, useEffect, useState } from "react";
 import {AuthContext} from "../contexts/AuthContext";
 import { login, logout, onAuthStateChange } from "../services/auth";
+import GoogleLoginButton from "./GoogleLoginButton";
+import MenuWithAvatar from "./MenuWithAvatar";
 
 export default function LoginModal() {
   const [open, setOpen] = useState(false);
@@ -34,12 +36,22 @@ export default function LoginModal() {
     setUser(null);
   }
   // TODO 로그인상태 유지하기
+  useEffect( () => {
+    const unsubscribe = onAuthStateChange((firebaseUser)=> {
+      setUser(firebaseUser)
+    })
+    return ()=>unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    console.log("useEffet", user)
+  }, [user])
+  
+  
 
   if (user) {
     return (
-      <Button size="sm" variant="outline" onClick={handleLogout}>
-        로그아웃
-      </Button>
+      <MenuWithAvatar/>
     );
   }
 
@@ -91,6 +103,14 @@ export default function LoginModal() {
                 로그인
               </Button>
             </Fieldset.Root>
+            <HStack my={4}>
+              <Separator flex="1" />
+              <Text flexShrink="0" px={2} color="gray.500" fontSize="sm">
+                또는
+              </Text>
+              <Separator flex="1" />
+            </HStack>
+            <GoogleLoginButton />
           </Dialog.Body>
         </Dialog.Content>
       </Dialog.Positioner>
