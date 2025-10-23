@@ -10,8 +10,9 @@ import {
 } from '@chakra-ui/react'
 
 export const toaster = createToaster({
-  placement: 'bottom-end',
+  placement: 'top-start',
   pauseOnPageIdle: true,
+  max: 5,
 })
 
 export const Toaster = () => {

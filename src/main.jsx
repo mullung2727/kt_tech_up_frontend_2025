@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { Provider } from './components/ui/provider.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import AuthProvider from './contexts/AuthContext.jsx'
+import { Toaster } from './components/ui/toaster.jsx'
 
 createRoot(document.getElementById('root')).render(
 
@@ -14,5 +15,6 @@ createRoot(document.getElementById('root')).render(
         <App />
       </BrowserRouter>
     </AuthProvider>
+    <Toaster/>
   </Provider>
 )

@@ -7,12 +7,14 @@ import {AuthContext} from "../contexts/AuthContext";
 import { login, logout, onAuthStateChange } from "../services/auth";
 import GoogleLoginButton from "./GoogleLoginButton";
 import MenuWithAvatar from "./MenuWithAvatar";
+import { firebaseErrorMessages } from "../config/firebaseError";
+import { toaster } from "./ui/toaster";
 
 export default function LoginModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [loginError, setLoginError] = useState(false)
+  const [loginError, setLoginError] = useState("")
   const {user, setUser} = useContext(AuthContext)
   
   const handleLogin = async (e) => {
@@ -24,17 +26,27 @@ export default function LoginModal() {
       setOpen(false)
       setEmail("")
       setPassword("")
-      setLoginError(false)
+      setLoginError("")
+      const userName = loginUser.displayName || loginUser.email
+      toaster.create({
+        description: `${userName}님 환영합니다~`,
+        type: "success",
+        duration: 5000,
+        closable: true,
+      })
     } catch (error) {
-      console.log(error)
-      setLoginError(true)
+      const message = firebaseErrorMessages[error.code] || error.code
+      setLoginError(message)
+      toaster.create({
+        description: "로그인에 실패했습니다.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      })
+      console.log(loginError)
     }
   }
 
-  const handleLogout = async () => {
-    await logout();
-    setUser(null);
-  }
   // TODO 로그인상태 유지하기
   useEffect( () => {
     const unsubscribe = onAuthStateChange((firebaseUser)=> {
@@ -95,10 +107,14 @@ export default function LoginModal() {
                   <Field.Label>비밀번호</Field.Label>
                   <PasswordInput
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)} />
+                    onChange={(e) => setPassword(e.target.value)} 
+                    onKeyDown={(e)=> e.key === "Enter" && handleLogin(e)}
+                  />
                 </Field.Root>
               </Fieldset.Content>
-              <Fieldset.ErrorText justifyContent="center">로그인에 실패했습니다.</Fieldset.ErrorText>
+              <Fieldset.ErrorText justifyContent="center">
+                {loginError || "로그인에 실패했습니다." }
+              </Fieldset.ErrorText>
               <Button type="submit" onClick={handleLogin} colorScheme="blue" width="100%" mt={4}>
                 로그인
               </Button>
@@ -110,7 +126,7 @@ export default function LoginModal() {
               </Text>
               <Separator flex="1" />
             </HStack>
-            <GoogleLoginButton />
+            <GoogleLoginButton onSuccess={()=>setOpen(false)}/>
           </Dialog.Body>
         </Dialog.Content>
       </Dialog.Positioner>

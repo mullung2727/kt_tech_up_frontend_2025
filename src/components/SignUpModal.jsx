@@ -1,9 +1,14 @@
 // src/components/SignUpModal.jsx
-import { Button, Dialog, Field, Fieldset, Icon, Input, Portal } from "@chakra-ui/react";
+import { Box, Button, Dialog, Field, Fieldset, FileUpload, HStack, Icon, Input, Portal, Separator, Text } from "@chakra-ui/react";
 import { PasswordInput } from "./ui/password-input";
 import { useState } from "react";
 import { signUp } from "../services/auth_sign_up"; 
 import { FaX } from "react-icons/fa6";
+import { firebaseErrorMessages } from "../config/firebaseError";
+import GoogleLoginButton from "./GoogleLoginButton";
+import { uploadAvatar } from "../services/storage";
+import { updateProfile } from "firebase/auth";
+import { LuUpload } from "react-icons/lu";
 
 export default function SignUpModal() {
   // TODO: 이메일, 비밀번호, 비밀번호 확인, 에러 상태 생성
@@ -12,20 +17,45 @@ export default function SignUpModal() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState(""); 
   const [error, setError] = useState(""); 
+  const [avatarFile, setAvatarFile] = useState(null); // * 추가
 
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    // TODO: 비밀번호와 비밀번호 확인이 일치하는지 검증
-
-    // TODO: try-catch로 signUp 함수 호출
+    // 비밀번호와 비밀번호 확인이 일치하는지 검증
+    if( password !== passwordConfirm) {
+      setError("비밀번호가 일치하지 않습니다.")
+      return ;
+    }
+    // try-catch로 signUp 함수 호출
+    try {
+      const user = await signUp(email, password)
+      console.log("회원가입 성공:", user)
+      if (avatarFile) { // * 추가
+        const photoURL = await uploadAvatar(user.uid, avatarFile)
+        await  updateProfile(user, {photoURL})
+      }
+      setOpen(false)
+      setEmail("")
+      setPassword("")
+      setPasswordConfirm("")
+    } catch (error) {
+      console.log("회원가입 실패: ", error)
+      const message = firebaseErrorMessages[error.code] || error.code;
+      setError(message)
+    }
+    
 
   };
 
   function handlePasswordConfirm(value) {
     setPasswordConfirm(value);
     // TODO: 비밀번호 확인 값이 비밀번호와 다르면 에러 메시지 표시
-
+    if (value && password !== value) {
+      setError("비밀번호가 일치하지 않습니다.")
+    } else {
+      setError("");
+    }
   }
 
   return (
@@ -76,6 +106,30 @@ export default function SignUpModal() {
                       value={passwordConfirm}
                       onChange={(e) => handlePasswordConfirm(e.target.value)} />
                   </Field.Root>
+                  <Field.Root mb={4}>
+                    <Field.Label>프로필 이미지 (선택)</Field.Label>
+                  </Field.Root>
+                  <FileUpload.Root
+                    maxFiles={1}
+                    accept="image/*"
+                  >
+                    <FileUpload.HiddenInput
+                      onChange={(e)=> {
+                        console.log("input change:", e.target.files[0])
+                        setAvatarFile(e.target.files[0] || null)
+                      }}
+                    />
+                    {!avatarFile && (
+                      <FileUpload.Dropzone p={3} minH="80px">
+                        <Icon as={LuUpload} />
+                        <FileUpload.DropzoneContent pointerEvents="none">
+                          <Box>드래그 또는 클릭하여 이미지 선택</Box>
+                        </FileUpload.DropzoneContent>
+                      </FileUpload.Dropzone>
+                    )}
+                    <FileUpload.List showSize clearable />
+
+                  </FileUpload.Root>
                 </Fieldset.Content>
                 
                 <Fieldset.ErrorText>{error}</Fieldset.ErrorText>
@@ -86,9 +140,18 @@ export default function SignUpModal() {
                   colorScheme="blue"
                   width="100%" 
                   mt={4}
+                  disabled={ (!!error) || (!email || !password || !passwordConfirm) }
                 >
                   회원가입
                 </Button>
+                <HStack my={4}>
+                  <Separator flex="1" />
+                  <Text flexShrink="0" px={2} color="gray.500" fontSize="sm">
+                    또는
+                  </Text>
+                  <Separator flex="1" />
+                </HStack>
+                <GoogleLoginButton onSuccess={()=>setOpen(false)}/>
               </Fieldset.Root>
             </Dialog.Body>
           </Dialog.Content>

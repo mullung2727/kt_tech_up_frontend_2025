@@ -2,8 +2,12 @@ import { Box, Container, HStack } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 import { Link } from "react-router-dom";
 import LoginModal from "./LoginModal";
+import SignUpModal from "./SignUpModal";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function Header() {
+  const {user} = useContext(AuthContext)
   return (
     <Container 
       maxW={'container.xl'} 
@@ -37,6 +41,8 @@ export default function Header() {
           </HStack>
         </Box>
         <HStack align={'center'}>
+          {!user && <SignUpModal />}
+          
           <LoginModal />
           <ColorModeButton />
         </HStack>
