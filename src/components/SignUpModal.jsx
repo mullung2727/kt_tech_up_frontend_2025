@@ -10,15 +10,23 @@ import { uploadAvatar } from "../services/storage";
 import { updateProfile } from "firebase/auth";
 import { LuUpload } from "react-icons/lu";
 
+// TODO : zod 스키마 정의
+
 export default function SignUpModal() {
-  // TODO: 이메일, 비밀번호, 비밀번호 확인, 에러 상태 생성
   const [open, setOpen] = useState(false);
+  // TODO : 기존 state 주석처리(email, password, passwordConfirm)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState(""); 
+  // TODO : error -> firebaseError로 수정(가독성을 위해)
   const [error, setError] = useState(""); 
-  const [avatarFile, setAvatarFile] = useState(null); // * 추가
+  const [avatarFile, setAvatarFile] = useState(null); 
 
+
+  // TODO : useForm 추가하기
+  
+
+  // TODO : 함수 수정 - 파라미터 포함
   const handleSignUp = async (e) => {
     e.preventDefault();
 
@@ -31,7 +39,7 @@ export default function SignUpModal() {
     try {
       const user = await signUp(email, password)
       console.log("회원가입 성공:", user)
-      if (avatarFile) { // * 추가
+      if (avatarFile) { 
         const photoURL = await uploadAvatar(user.uid, avatarFile)
         await  updateProfile(user, {photoURL})
       }
@@ -48,9 +56,9 @@ export default function SignUpModal() {
 
   };
 
+  // TODO : 삭제 - useForm에서 처리
   function handlePasswordConfirm(value) {
     setPasswordConfirm(value);
-    // TODO: 비밀번호 확인 값이 비밀번호와 다르면 에러 메시지 표시
     if (value && password !== value) {
       setError("비밀번호가 일치하지 않습니다.")
     } else {
@@ -85,6 +93,7 @@ export default function SignUpModal() {
                   <Field.Root mb={4}>
                     <Field.Label>이메일</Field.Label>
                     <Input 
+                    // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
                       type="email" 
                       required
                       placeholder="이메일을 입력하세요" 
@@ -96,6 +105,7 @@ export default function SignUpModal() {
                   <Field.Root mb={4}>
                     <Field.Label>비밀번호</Field.Label>
                     <PasswordInput 
+                    // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
                       value={password}
                       onChange={(e) => setPassword(e.target.value)} /> 
                   </Field.Root>
@@ -103,6 +113,7 @@ export default function SignUpModal() {
                   <Field.Root mb={4}>
                     <Field.Label>비밀번호 확인</Field.Label>
                     <PasswordInput 
+                    // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
                       value={passwordConfirm}
                       onChange={(e) => handlePasswordConfirm(e.target.value)} />
                   </Field.Root>
@@ -136,10 +147,12 @@ export default function SignUpModal() {
                 
                 <Button 
                   type="submit" 
+                  // TODO onClick 수정
                   onClick={handleSignUp} 
                   colorScheme="blue"
                   width="100%" 
                   mt={4}
+                  // TODO disabled 수정
                   disabled={ (!!error) || (!email || !password || !passwordConfirm) }
                 >
                   회원가입
