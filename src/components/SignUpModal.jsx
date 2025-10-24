@@ -9,62 +9,67 @@ import GoogleLoginButton from "./GoogleLoginButton";
 import { uploadAvatar } from "../services/storage";
 import { updateProfile } from "firebase/auth";
 import { LuUpload } from "react-icons/lu";
+import { useForm } from "react-hook-form";
+import {z} from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // TODO : zod 스키마 정의
+const signUpSchema = z.object({
+  email: z.email("이메일 형식이 아닙니다."),
+  password: z.string().min(6, "비밀번호는 최소 6자 이상이어야 합니다.")
+                      .regex(/[!@#$%^&*]/, "특수문자를 포함해야 합니다.")
+                      .regex(/[0-9]/, "숫자를 포함해야 합니다.")
+                      .regex(/[a-zA-Z]/, "영문자를 포함해야 합니다."),
+  passwordConfirm: z.string()
+}).refine((data)=>data.password===data.passwordConfirm, {
+  message: "비밀번호가 일치하지 않습니다.",
+  path: ["passwordConfirm"]
+});
 
 export default function SignUpModal() {
   const [open, setOpen] = useState(false);
   // TODO : 기존 state 주석처리(email, password, passwordConfirm)
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState(""); 
   // TODO : error -> firebaseError로 수정(가독성을 위해)
-  const [error, setError] = useState(""); 
+  const [firebaseError, setFirebaseError] = useState(""); 
   const [avatarFile, setAvatarFile] = useState(null); 
 
 
   // TODO : useForm 추가하기
-  
+  const {
+    register,
+    handleSubmit,
+    formState: {errors, isValid},
+    reset
+  } = useForm({
+    resolver: zodResolver(signUpSchema),
+    mode: "onChange",
+    defaultValues: {email:"", password:"", passwordConfirm:""}
+  })
 
   // TODO : 함수 수정 - 파라미터 포함
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-
-    // 비밀번호와 비밀번호 확인이 일치하는지 검증
-    if( password !== passwordConfirm) {
-      setError("비밀번호가 일치하지 않습니다.")
-      return ;
-    }
+  const onSubmit = async (data) => {
+    setFirebaseError("")
     // try-catch로 signUp 함수 호출
     try {
-      const user = await signUp(email, password)
+      const user = await signUp(data.email, data.password)
       console.log("회원가입 성공:", user)
       if (avatarFile) { 
         const photoURL = await uploadAvatar(user.uid, avatarFile)
         await  updateProfile(user, {photoURL})
       }
       setOpen(false)
-      setEmail("")
-      setPassword("")
-      setPasswordConfirm("")
+      reset();
+      setAvatarFile(null)
     } catch (error) {
       console.log("회원가입 실패: ", error)
       const message = firebaseErrorMessages[error.code] || error.code;
-      setError(message)
+      setFirebaseError(message)
     }
     
 
   };
 
   // TODO : 삭제 - useForm에서 처리
-  function handlePasswordConfirm(value) {
-    setPasswordConfirm(value);
-    if (value && password !== value) {
-      setError("비밀번호가 일치하지 않습니다.")
-    } else {
-      setError("");
-    }
-  }
 
   return (
     <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
@@ -88,34 +93,42 @@ export default function SignUpModal() {
               </Dialog.CloseTrigger>
             </Dialog.Header>
             <Dialog.Body>
-              <Fieldset.Root invalid={!!error}> 
+              <Fieldset.Root invalid={!isValid || !!firebaseError}> 
                 <Fieldset.Content>
-                  <Field.Root mb={4}>
+                  <Field.Root mb={4} invalid={!!errors.email}>
                     <Field.Label>이메일</Field.Label>
                     <Input 
                     // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
                       type="email" 
-                      required
+                      // required
                       placeholder="이메일을 입력하세요" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)} 
+                      // value={email}
+                      // onChange={(e) => setEmail(e.target.value)} 
+                      {...register("email")}
                     />
+                    <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
                   </Field.Root>
                   
-                  <Field.Root mb={4}>
+                  <Field.Root mb={4} invalid={!!errors.password}>
                     <Field.Label>비밀번호</Field.Label>
                     <PasswordInput 
                     // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)} /> 
+                      // value={password}
+                      // onChange={(e) => setPassword(e.target.value)} 
+                      {...register("password")}
+                    /> 
+                    <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                   </Field.Root>
                   
-                  <Field.Root mb={4}>
+                  <Field.Root mb={4} invalid={!!errors.passwordConfirm}>
                     <Field.Label>비밀번호 확인</Field.Label>
                     <PasswordInput 
                     // TODO register로 프롭 추가 + 불필요한 프롭 제거 + ErrorText 추가
-                      value={passwordConfirm}
-                      onChange={(e) => handlePasswordConfirm(e.target.value)} />
+                      // value={passwordConfirm}
+                      // onChange={(e) => handlePasswordConfirm(e.target.value)} 
+                      {...register("passwordConfirm")}
+                    />
+                    <Field.ErrorText>{errors.passwordConfirm?.message}</Field.ErrorText>
                   </Field.Root>
                   <Field.Root mb={4}>
                     <Field.Label>프로필 이미지 (선택)</Field.Label>
@@ -143,17 +156,17 @@ export default function SignUpModal() {
                   </FileUpload.Root>
                 </Fieldset.Content>
                 
-                <Fieldset.ErrorText>{error}</Fieldset.ErrorText>
+                <Fieldset.ErrorText>{firebaseError}</Fieldset.ErrorText>
                 
                 <Button 
                   type="submit" 
                   // TODO onClick 수정
-                  onClick={handleSignUp} 
+                  onClick={handleSubmit(onSubmit)} 
                   colorScheme="blue"
                   width="100%" 
                   mt={4}
                   // TODO disabled 수정
-                  disabled={ (!!error) || (!email || !password || !passwordConfirm) }
+                  disabled={ !isValid }
                 >
                   회원가입
                 </Button>
